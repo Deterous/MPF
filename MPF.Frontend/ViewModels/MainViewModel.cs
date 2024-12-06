@@ -39,11 +39,6 @@ namespace MPF.Frontend.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
-        /// Action to process logging statements
-        /// </summary>
-        private Action<LogLevel, string>? _logger;
-
-        /// <summary>
         /// Display a message to a user
         /// </summary>
         /// <remarks>
@@ -564,12 +559,10 @@ namespace MPF.Frontend.ViewModels
         /// Initialize the main window after loading
         /// </summary>
         public void Init(
-            Action<LogLevel, string> loggerAction,
             Func<string, string, int, bool, bool?> displayUserMessage,
             ProcessUserInfoDelegate processUserInfo)
         {
             // Set the callbacks
-            _logger = loggerAction;
             _displayUserMessage = displayUserMessage;
             _processUserInfo = processUserInfo;
 

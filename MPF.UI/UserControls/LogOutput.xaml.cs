@@ -19,11 +19,6 @@ namespace MPF.UI.UserControls
         internal FlowDocument Document { get; private set; }
 
         /// <summary>
-        /// Queue of items that need to be logged
-        /// </summary>
-        internal ProcessingQueue<LogLine> LogQueue { get; private set; }
-
-        /// <summary>
         /// Paragraph backing the log
         /// </summary>
         private readonly Paragraph _paragraph;
@@ -56,9 +51,6 @@ namespace MPF.UI.UserControls
             _paragraph = new Paragraph();
             Document.Blocks.Add(_paragraph);
 
-            // Setup the processing queue
-            LogQueue = new ProcessingQueue<LogLine>(ProcessLogLine);
-
             // Add handlers
             OutputViewer!.SizeChanged += OutputViewerSizeChanged;
             Output!.TextChanged += OnTextChanged;
@@ -82,8 +74,8 @@ namespace MPF.UI.UserControls
             if (text == null)
                 return;
 
-            // Enqueue the text
-            LogQueue.Enqueue(new LogLine(text, logLevel));
+            // Log the text
+            ProcessLogLine(new LogLine(text, logLevel));
         }
 
         /// <summary>
