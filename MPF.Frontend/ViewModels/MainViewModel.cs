@@ -564,10 +564,11 @@ namespace MPF.Frontend.ViewModels
         /// Initialize the main window after loading
         /// </summary>
         public void Init(
+            Action<LogLevel, string> loggerAction,
             Func<string, string, int, bool, bool?> displayUserMessage,
             ProcessUserInfoDelegate processUserInfo)
         {
-            // Set the callbacks
+            // Set the callbacks_logger = loggerAction;
             _displayUserMessage = displayUserMessage;
             _processUserInfo = processUserInfo;
 

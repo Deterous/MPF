@@ -107,7 +107,7 @@ namespace MPF.UI.Windows
             if (MainViewModel.Options.ShowDebugViewMenuItem)
                 DebugViewMenuItem!.Visibility = Visibility.Visible;
 
-            MainViewModel.Init(DisplayUserMessage, ShowDiscInformationWindow);
+            MainViewModel.Init(LogOutput!.EnqueueLog, DisplayUserMessage, ShowDiscInformationWindow);
 
             // Set the UI color scheme according to the options
             ApplyTheme();
