@@ -39,6 +39,11 @@ namespace MPF.Frontend.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
 
         /// <summary>
+        /// Action to process logging statements
+        /// </summary>
+        private Action<LogLevel, string>? _logger;
+
+        /// <summary>
         /// Display a message to a user
         /// </summary>
         /// <remarks>
