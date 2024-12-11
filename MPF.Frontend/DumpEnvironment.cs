@@ -49,7 +49,7 @@ namespace MPF.Frontend
         /// <summary>
         /// Options object representing user-defined options
         /// </summary>
-        private readonly Frontend.Options _options;
+        private readonly Options _options;
 
         /// <summary>
         /// Processor object representing how to process the outputs
@@ -117,7 +117,7 @@ namespace MPF.Frontend
         /// <param name="type"></param>
         /// <param name="internalProgram"></param>
         /// <param name="parameters"></param>
-        public DumpEnvironment(Frontend.Options options,
+        public DumpEnvironment(Options options,
             string? outputPath,
             Drive? drive,
             RedumpSystem? system,
@@ -285,7 +285,8 @@ namespace MPF.Frontend
                     or MediaType.HDDVD
                     or MediaType.BluRay
                     or MediaType.NintendoGameCubeGameDisc
-                    or MediaType.NintendoWiiOpticalDisc => true,
+                    or MediaType.NintendoWiiOpticalDisc
+                    or MediaType.NintendoWiiUOpticalDisc => true,
                 _ => false,
             };
         }
@@ -343,7 +344,8 @@ namespace MPF.Frontend
                 // Partially supported types
                 MediaType.GDROM
                     or MediaType.NintendoGameCubeGameDisc
-                    or MediaType.NintendoWiiOpticalDisc => ResultEventArgs.Success($"{_type.LongName()} partially supported for dumping"),
+                    or MediaType.NintendoWiiOpticalDisc
+                    or MediaType.NintendoWiiUOpticalDisc => ResultEventArgs.Success($"{_type.LongName()} partially supported for dumping"),
 
                 // Special case for other supported tools
                 MediaType.UMD => ResultEventArgs.Failure($"{_type.LongName()} supported for submission info parsing"),

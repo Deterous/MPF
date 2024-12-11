@@ -49,6 +49,26 @@
 - Increase sleep time in queue
 - Unify queue handling in processing queue
 - Add non-tools frontend tests
+- Update RedumpLib to 1.6.1
+- Ensure consistency in frontend code
+- Ensure Redumper support matrix is consistent
+- Add FrontendTool tests
+- Update protection tool tests
+- Remove unnecessary namespace prefixes
+- Clean up original Drive tests
+- Add debug flag to publish scripts
+- Add gated program downloads to publish scripts
+- Migrate to using publish script for GHA
+- Update README to remove AppVeyor references
+- Remove unused gated using statement
+- Add alternate config location
+- Add safety check around empty config files
+- Add launch config for CLI
+- Remove unnecessary re-splitting of path
+- Always filter out game engines and packers
+- Remove now-redundant option
+- Always omit EA CD-Key
+- Add packer filtering tests
 
 ### 3.2.4 (2024-11-24)
 

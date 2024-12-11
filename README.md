@@ -2,12 +2,9 @@
 
 Redumper/Aaru/DiscImageCreator UI in C#
 
-[![Build status](https://ci.appveyor.com/api/projects/status/3ldav3v0c373jeqa?svg=true)](https://ci.appveyor.com/project/mnadareski/MPF)
-[![UI Build](https://github.com/SabreTools/MPF/actions/workflows/build_ui.yml/badge.svg)](https://github.com/SabreTools/MPF/actions/workflows/build_ui.yml)
-[![CLI Build](https://github.com/SabreTools/MPF/actions/workflows/build_cli.yml/badge.svg)](https://github.com/SabreTools/MPF/actions/workflows/build_cli.yml)
-[![Check Build](https://github.com/SabreTools/MPF/actions/workflows/build_check.yml/badge.svg)](https://github.com/SabreTools/MPF/actions/workflows/build_check.yml)
+[![Build and Test](https://github.com/SabreTools/MPF/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/SabreTools/MPF/actions/workflows/build_and_test.yml)
 
-This is a community project, so if you have some time and knowledge to give, we'll be glad to add you as a contributor to this project. If you have any suggestions, issues, bugs, or crashes, please look at the [Issues](https://github.com/SabreTools/MPF/issues) page first to see if it has been reported before and try out the latest AppVeyor WIP build below to see if it has already been addressed. If it hasn't, please open an issue that's as descriptive as you can be. Help me make this a better program for everyone :)
+This is a community project, so if you have some time and knowledge to give, we'll be glad to add you as a contributor to this project. If you have any suggestions, issues, bugs, or crashes, please look at the [Issues](https://github.com/SabreTools/MPF/issues) page first to see if it has been reported before and try out the latest WIP build below to see if it has already been addressed. If it hasn't, please open an issue that's as descriptive as you can be. Help me make this a better program for everyone :)
 
 ## Releases
 
@@ -18,6 +15,8 @@ For the latest WIP build here: [Rolling Release](https://github.com/SabreTools/M
 ## Media Preservation Frontend UI (MPF.UI)
 
 MPF is the main, UI-centric application of the MPF suite. This program allows users to use Redumper, Aaru, or DiscImageCreator in a more user-friendly way. Each backend dumping program is supported as fully as possible to ensure that all information is captured on output. There are many customization options and quality of life settings that can be access through the Options menu.
+
+Configuration files are stored by default next to the application as `config.json`. This contains all settings for the UI including credentials. In addition to this, the configuration can also be located at `%userprofile%\.config\mpf\config.json` on Windows or `~/.config/mpf/config.json` on Unix-like systems. The second path will be used by default if running from a read-only device or folder. If neither directory is readable, no options will be loaded or saved.
 
 ### UI Support Limitations
 
@@ -35,7 +34,9 @@ The main UI has some known limitations that are documented in code and in some p
 
 ## Media Preservation Frontend CLI (MPF.CLI)
 
-MPF.CLI is a commandline-only program that allows users to use Redumper, Aaru, or DiscImageCreator in a more user-friendly way. Each backend dumping program is supported as fully as possible to ensure that all information is captured on output. There are many customization options and quality of life settings that can be access through the `config.json` file.
+MPF.CLI is a commandline-only program that allows users to use Redumper, Aaru, or DiscImageCreator in a more user-friendly way. Each backend dumping program is supported as fully as possible to ensure that all information is captured on output. All options are manually configured through the configuration file. See below for details.
+
+Configuration files are stored by default next to the application as `config.json`. This contains all settings for the UI including credentials. In addition to this, the configuration can also be located at `%userprofile%\.config\mpf\config.json` on Windows or `~/.config/mpf/config.json` on Unix-like systems. The second path will be used by default if running from a read-only device or folder. If neither directory is readable, no options will be loaded or saved.
 
 ### CLI Support Limitations
 
@@ -90,8 +91,8 @@ Choose one of `win-x86`, `win-x64`, `win-arm64`, `linux-x64`, `linux-arm64`, `os
 
 Windows users may run `publish-win.ps1` and Linux users may run `publish-nix.sh` to perform a full release build. Both scripts will build and package all variants of MPF.UI, MPF.CLI, and MPF.Check with commandline switches to control what is included.
 
-- `publish-win.ps1` requires [7-zip commandline](https://www.7-zip.org/download.html) and [Git for Windows](https://git-scm.com/downloads) to be installed and in `PATH`
-- `publish-nix.sh` requires `zip` and `git` to be installed and in `PATH`
+- `publish-win.ps1` requires [7-zip commandline](https://www.7-zip.org/download.html) and [Git for Windows](https://git-scm.com/downloads) to be installed and in `PATH`.
+- `publish-nix.sh` requires `zip` and `git` to be installed and in `PATH`. Optionally, if `wget` is installed and in `PATH`, you can enable pulling dumping programs on publish.
 
 ## Information
 

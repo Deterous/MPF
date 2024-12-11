@@ -3,6 +3,7 @@
 # This batch file assumes the following:
 # - .NET 9.0 (or newer) SDK is installed and in PATH
 # - zip is installed and in PATH
+# - wget is installed an in PATH
 # - Git is installed and in PATH
 # - The relevant commandline programs are already downloaded
 #   and put into their respective folders
@@ -12,13 +13,17 @@
 
 # Optional parameters
 USE_ALL=false
+INCLUDE_DEBUG=false
 INCLUDE_PROGRAMS=false
 NO_BUILD=false
 NO_ARCHIVE=false
-while getopts "upba" OPTION; do
+while getopts "udpba" OPTION; do
     case $OPTION in
     u)
         USE_ALL=true
+        ;;
+    d)
+        INCLUDE_DEBUG=true
         ;;
     p)
         INCLUDE_PROGRAMS=true
@@ -45,6 +50,7 @@ COMMIT=$(git log --pretty=%H -1)
 # Output the selected options
 echo "Selected Options:"
 echo "  Use all frameworks (-u)               $USE_ALL"
+echo "  Include debug builds (-d)             $INCLUDE_DEBUG"
 echo "  Include programs (-p)                 $INCLUDE_PROGRAMS"
 echo "  No build (-b)                         $NO_BUILD"
 echo "  No archive (-a)                       $NO_ARCHIVE"
@@ -102,14 +108,14 @@ if [ $NO_BUILD = false ]; then
 
             # Only .NET 5 and above can publish to a single file
             if [[ $(echo ${SINGLE_FILE_CAPABLE[@]} | fgrep -w $FRAMEWORK) ]]; then
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.UI/MPF.UI.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true
                 fi
                 dotnet publish MPF.UI/MPF.UI.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
             else
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.UI/MPF.UI.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT
                 fi
                 dotnet publish MPF.UI/MPF.UI.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:DebugType=None -p:DebugSymbols=false
@@ -141,14 +147,14 @@ if [ $NO_BUILD = false ]; then
 
             # Only .NET 5 and above can publish to a single file
             if [[ $(echo ${SINGLE_FILE_CAPABLE[@]} | fgrep -w $FRAMEWORK) ]]; then
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.CLI/MPF.CLI.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true
                 fi
                 dotnet publish MPF.CLI/MPF.CLI.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
             else
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.CLI/MPF.CLI.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT
                 fi
                 dotnet publish MPF.CLI/MPF.CLI.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:DebugType=None -p:DebugSymbols=false
@@ -180,14 +186,14 @@ if [ $NO_BUILD = false ]; then
 
             # Only .NET 5 and above can publish to a single file
             if [[ $(echo ${SINGLE_FILE_CAPABLE[@]} | fgrep -w $FRAMEWORK) ]]; then
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.Check/MPF.Check.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true
                 fi
                 dotnet publish MPF.Check/MPF.Check.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false
             else
-                # Only include Debug if building all
-                if [ $USE_ALL = true ]; then
+                # Only include Debug if set
+                if [ $INCLUDE_DEBUG = true ]; then
                     dotnet publish MPF.Check/MPF.Check.csproj -f $FRAMEWORK -r $RUNTIME -c Debug --self-contained true --version-suffix $COMMIT
                 fi
                 dotnet publish MPF.Check/MPF.Check.csproj -f $FRAMEWORK -r $RUNTIME -c Release --self-contained true --version-suffix $COMMIT -p:DebugType=None -p:DebugSymbols=false
@@ -198,6 +204,47 @@ fi
 
 # Only create archives if requested
 if [ $NO_ARCHIVE = false ]; then
+    # Download and extract, if needed
+    if [ $INCLUDE_PROGRAMS = true ]; then
+        echo "===== Downloading Required Programs ====="
+
+        # Aaru
+        # --- Skipped for now ---
+
+        # DiscImageCreator
+        wget https://github.com/user-attachments/files/17211434/DiscImageCreator_20241001.zip
+        unzip -u DiscImageCreator_20241001.zip
+
+        # Redumper
+        wget https://github.com/superg/redumper/releases/download/build_438/redumper-2024.11.03_build438-win64.zip
+        unzip redumper-2024.11.03_build438-win64.zip
+
+        # Create directories and copy data
+        for FRAMEWORK in "${UI_FRAMEWORKS[@]}"; do
+            for RUNTIME in "${UI_RUNTIMES[@]}"; do
+                if [ $INCLUDE_DEBUG = true ]; then
+                    mkdir -p MPF.UI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/Programs/Creator
+                    cp -rf Release_ANSI/* MPF.UI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/Programs/Creator/
+
+                    mkdir -p MPF.UI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/Programs/Redumper
+                    cp -rf redumper-2024.11.03_build438-win64/bin/redumper.exe MPF.UI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/Programs/Redumper/
+                fi
+
+                mkdir -p MPF.UI/bin/Release/${FRAMEWORK}/${RUNTIME}/publish/Programs/Creator
+                cp -rf Release_ANSI/* MPF.UI/bin/Release/${FRAMEWORK}/${RUNTIME}/publish/Programs/Creator/
+
+                mkdir -p MPF.UI/bin/Release/${FRAMEWORK}/${RUNTIME}/publish/Programs/Redumper
+                cp -rf redumper-2024.11.03_build438-win64/bin/redumper.exe MPF.UI/bin/Release/${FRAMEWORK}/${RUNTIME}/publish/Programs/Redumper/
+            done
+        done
+
+        # Clean up the odownloaded files and directories
+        rm DiscImageCreator_20241001.zip
+        rm -r Release_ANSI
+        rm redumper-2024.11.03_build438-win64.zip
+        rm -r redumper-2024.11.03_build438-win64
+    fi
+
     # Create UI archives
     for FRAMEWORK in "${UI_FRAMEWORKS[@]}"; do
         for RUNTIME in "${UI_RUNTIMES[@]}"; do
@@ -220,8 +267,8 @@ if [ $NO_ARCHIVE = false ]; then
                 fi
             fi
 
-            # Only include Debug if building all
-            if [ $USE_ALL = true ]; then
+            # Only include Debug if set
+            if [ $INCLUDE_DEBUG = true ]; then
                 cd $BUILD_FOLDER/MPF.UI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/
                 if [ $INCLUDE_PROGRAMS = true ]; then
                     zip -r $BUILD_FOLDER/MPF.UI_${FRAMEWORK}_${RUNTIME}_debug.zip .
@@ -260,8 +307,8 @@ if [ $NO_ARCHIVE = false ]; then
                 fi
             fi
 
-            # Only include Debug if building all
-            if [ $USE_ALL = true ]; then
+            # Only include Debug if set
+            if [ $INCLUDE_DEBUG = true ]; then
                 cd $BUILD_FOLDER/MPF.CLI/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/
                 zip -r $BUILD_FOLDER/MPF.CLI_${FRAMEWORK}_${RUNTIME}_debug.zip .
             fi
@@ -292,8 +339,8 @@ if [ $NO_ARCHIVE = false ]; then
                 fi
             fi
 
-            # Only include Debug if building all
-            if [ $USE_ALL = true ]; then
+            # Only include Debug if set
+            if [ $INCLUDE_DEBUG = true ]; then
                 cd $BUILD_FOLDER/MPF.Check/bin/Debug/${FRAMEWORK}/${RUNTIME}/publish/
                 zip -r $BUILD_FOLDER/MPF.Check_${FRAMEWORK}_${RUNTIME}_debug.zip .
             fi
