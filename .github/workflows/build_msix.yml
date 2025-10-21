@@ -16,11 +16,8 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Setup nuget
-      uses: NuGet/setup-nuget@v2
-    
-    - name: Nuget Restore
-      run: nuget restore MPF.UI/MPF.UI.csproj
+    - name: Restore Packages
+      run: msbuild MPF.UI/MPF.UI.csproj /restore
         
     - name: Build MSIX
       run: msbuild MPF.UI/MPF.UI.csproj `
