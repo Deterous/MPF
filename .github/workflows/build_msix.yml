@@ -21,6 +21,7 @@ jobs:
         
     - name: Build MSIX
       run: msbuild MPF.UI/MPF.UI.csproj `
+        /t:Publish
         /p:Configuration=Release `
         /p:GenerateAppxPackageOnBuild=true `
         /p:AppxBundle=Always `
@@ -37,4 +38,4 @@ jobs:
       with:
         name: MSIX_Package
         path: |
-          MPF.UI\obj\Release\net9.0-windows\AppPackage\*.msix
+          **\AppPackage\*.msix
