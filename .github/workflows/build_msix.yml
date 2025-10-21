@@ -28,10 +28,12 @@ jobs:
         /p:AppxPackageSigningEnabled=false `
         /p:UapAppxPackageBuildMode=StoreUpload `
         /p:TargetFramework=net9.0-windows
+    
+    - name: List files
+      run: dir "MPF.UI\bin\Release\net9.0-windows\AppPackages" /s
 
     - name: Upload MSIX artifact
       uses: actions/upload-artifact@v4
       with:
         name: MSIX_Package
-        path: |
-          **\AppPackages\*.msix*
+        path: MPF.UI\bin\Release\net9.0-windows\AppPackages\*.msix

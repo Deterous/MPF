@@ -20,7 +20,6 @@
         <UseWPF>true</UseWPF>
         <VersionPrefix>3.5.0</VersionPrefix>
 
-        <UseWPF>true</UseWPF>
         <WindowsPackageType>MSIX</WindowsPackageType>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
