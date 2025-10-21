@@ -125,8 +125,4 @@
         </ItemGroup>
     </Target>
 
-    <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAppRuntime.Bootstrap.Net" Version="1.6.240812000" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" PrivateAssets="all" />
-    </ItemGroup>
 </Project>
