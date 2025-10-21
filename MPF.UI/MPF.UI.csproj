@@ -20,6 +20,14 @@
         <UseWPF>true</UseWPF>
         <VersionPrefix>3.5.0</VersionPrefix>
 
+        <UseWPF>true</UseWPF>
+        <WindowsPackageType>MSIX</WindowsPackageType>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+        <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+        <AppxBundle>Always</AppxBundle>
+        <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
+        <AppxPackageDir>$(OutputPath)\AppPackages\</AppxPackageDir>
+
         <!-- Package Properties -->
         <AssemblyName>MPF</AssemblyName>
         <Authors>Matt Nadareski;ReignStumble;Jakz</Authors>
@@ -117,4 +125,8 @@
         </ItemGroup>
     </Target>
 
+    <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppRuntime.Bootstrap.Net" Version="1.6.240812000" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1" PrivateAssets="all" />
+    </ItemGroup>
 </Project>

@@ -1,0 +1,39 @@
+name: Build MSIX
+
+on:
+  push:
+    branches: [ "msix" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup nuget
+      uses: NuGet/setup-nuget@v2
+    
+    - name: Nuget Restore
+      run: nuget restore MPF.UI/MPF.UI.csproj
+        
+    - name: Build UWP
+      run: msbuild MPF.UI/MPF.UI.csproj \
+        /p:Configuration=Release \
+        /p:GenerateAppxPackageOnBuild=true \
+        /p:AppxBundle=Always \
+        /p:AppxBundlePlatforms="x86|x64|arm64" \
+        /p:AppxPackageSigningEnabled=false \
+        /p:UapAppxPackageBuildMode=StoreUpload
+
+    - name: Upload MSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MSIX_Package
+        path: |
+          **\AppPackages\*.msix*
