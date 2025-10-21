@@ -22,13 +22,13 @@ jobs:
     - name: Nuget Restore
       run: nuget restore MPF.UI/MPF.UI.csproj
         
-    - name: Build UWP
-      run: msbuild MPF.UI/MPF.UI.csproj \
-        /p:Configuration=Release \
-        /p:GenerateAppxPackageOnBuild=true \
-        /p:AppxBundle=Always \
-        /p:AppxBundlePlatforms="x86|x64|arm64" \
-        /p:AppxPackageSigningEnabled=false \
+    - name: Build MSIX
+      run: msbuild MPF.UI/MPF.UI.csproj `
+        /p:Configuration=Release `
+        /p:GenerateAppxPackageOnBuild=true `
+        /p:AppxBundle=Always `
+        /p:AppxBundlePlatforms="x86|x64|arm64" `
+        /p:AppxPackageSigningEnabled=false `
         /p:UapAppxPackageBuildMode=StoreUpload
 
     - name: Upload MSIX artifact
