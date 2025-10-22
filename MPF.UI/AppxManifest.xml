@@ -18,6 +18,9 @@
     <Resource Language="en-us" />
   </Resources>
   <Applications>
+    <Extensions>
+      <desktop:Extension Category="windows.fullTrustProcess" />
+    </Extensions>
     <Application Id="App"
                  Executable="MPF.exe"
                  EntryPoint="Windows.FullTrustApplication">
@@ -29,9 +32,6 @@
         <uap:DefaultTile Wide310x150Logo="Images\ring-code-guide-1-layer.png" />
         <uap:SplashScreen Image="Images\ring-code-guide-1-layer.png" />
       </uap:VisualElements>
-      <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" />
-      </Extensions>
     </Application>
   </Applications>
 </Package>
