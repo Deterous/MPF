@@ -29,6 +29,9 @@
         <uap:DefaultTile Wide310x150Logo="Images\ring-code-guide-1-layer.png" />
         <uap:SplashScreen Image="Images\ring-code-guide-1-layer.png" />
       </uap:VisualElements>
+      <Extensions>
+        <desktop:Extension Category="windows.fullTrustProcess" />
+      </Extensions>
     </Application>
   </Applications>
 </Package>
