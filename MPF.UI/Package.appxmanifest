@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+  <Identity Name="SabreTools.MPF.UI" 
+            Version="3.5.0"
+            Publisher="" />
+  <Properties>
+    <DisplayName>MPF</DisplayName>
+    <PublisherDisplayName>SabreTools</PublisherDisplayName>
+    <Logo>Images\Icon.ico</Logo>
+  </Properties>
+  <Prerequisites>
+    <OSMinVersion>6.2.1</OSMinVersion>
+    <OSMaxVersionTested>6.2.1</OSMaxVersionTested>
+  </Prerequisites>
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+  <Applications>
+    <Application Id="MPF" StartPage="default.html">
+      <VisualElements DisplayName="MPF" Description="Media Preservation Frontend"
+           Logo="Images\Icon.ico" SmallLogo="Images\Icon.ico"  
+           ForegroundText="dark" BackgroundColor="#FFFFFF">
+         <SplashScreen Image="Images\Icon.ico" />
+      </VisualElements>
+    </Application>
+  </Applications>
+</Package>
