@@ -13,9 +13,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: List Windows Kits
-      run: dir -r "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\"
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -27,7 +24,7 @@ jobs:
 
     - name: Make MSIX
       run: |
-        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\makeappx.exe' pack /d . /p MPF.appx
+        & 'C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\makeappx.exe' pack /d "MPF.UI" /p MPF.appx
 
     - name: List files
       run: dir -r "MPF.UI\bin\Release\net9.0-windows\"
