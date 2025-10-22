@@ -22,7 +22,7 @@
                  Executable="MPF.exe"
                  EntryPoint="Windows.FullTrustApplication">
       <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" />
+        <desktop:Extension Category="windows.fullTrustProcess">
           <desktop:FullTrustProcess>
             <Path>MPF.exe</Path>
           </desktop:FullTrustProcess>
