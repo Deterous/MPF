@@ -27,7 +27,7 @@ jobs:
       #run: msbuild MPF.UI/MPF.UI.csproj /restore /t:Publish /p:Configuration=Release /p:TargetFramework=net9.0-windows /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Always /p:AppxBundlePlatforms="x86|x64|arm64" /p:AppxPackageSigningEnabled=false /p:UapAppxPackageBuildMode=StoreUpload
     
     - name: Make MSIX
-      run: MakeAppx.exe pack 
+      run: MakeAppx pack /d "MPF.UI\bin\Release\net9.0-windows\publish" /p MyApp.appx
 
     - name: List files
       run: dir -r "MPF.UI\bin\Release\net9.0-windows\"
