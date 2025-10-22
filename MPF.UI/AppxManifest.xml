@@ -9,7 +9,7 @@
   <Properties>
     <DisplayName>Media Preservation Framework</DisplayName>
     <PublisherDisplayName>SabreTools</PublisherDisplayName>
-    <Logo>Images\Icon.ico</Logo>
+    <Logo>Images\ring-code-guide-1-layer.png</Logo>
   </Properties>
   <Dependencies>
     <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.22000.0" />
@@ -24,10 +24,10 @@
       <uap:VisualElements DisplayName="MPF"
                           Description="Media Preservation Framework"
                           BackgroundColor="transparent"
-                          Square150x150Logo="Images\Icon.ico"
-                          Square44x44Logo="Images\Icon.ico">
-        <uap:DefaultTile Wide310x150Logo="Images\Icon.ioc" />
-        <uap:SplashScreen Image="Images\Icon.ico" />
+                          Square150x150Logo="Images\ring-code-guide-1-layer.png"
+                          Square44x44Logo="Images\ring-code-guide-1-layer.png">
+        <uap:DefaultTile Wide310x150Logo="Images\ring-code-guide-1-layer.png" />
+        <uap:SplashScreen Image="Images\ring-code-guide-1-layer.png" />
       </uap:VisualElements>
       <desktop:Extension Category="windows.fullTrustProcess" />
     </Application>
