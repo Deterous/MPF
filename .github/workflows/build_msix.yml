@@ -31,11 +31,11 @@ jobs:
         /p:TargetFramework=net9.0-windows
     
     - name: List files
-      run: dir -r "MPF.UI\obj\Release\net9.0-windows\"
+      run: dir -r "MPF.UI\bin\Release\net9.0-windows\"
 
     - name: Upload MSIX artifact
       uses: actions/upload-artifact@v4
       with:
         name: MSIX_Package
         path: |
-          **\AppPackage\*.msix
+          **\AppPackage\*.msix*
