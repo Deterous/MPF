@@ -20,14 +20,7 @@
   <Applications>
     <Application Id="MPF"
                  Executable="MPF.exe"
-                 EntryPoint="Windows.FullTrustApplication">
-      <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess">
-          <desktop:FullTrustProcess>
-            <Path>MPF.exe</Path>
-          </desktop:FullTrustProcess>
-        </desktop:Extension>
-      </Extensions>
+                 EntryPoint="MPF.App">
       <uap:VisualElements DisplayName="MPF"
                           Description="Media Preservation Framework"
                           BackgroundColor="transparent"
