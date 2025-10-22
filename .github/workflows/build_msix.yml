@@ -13,22 +13,18 @@ jobs:
       with:
         submodules: recursive
     
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Restore Packages
-      run: msbuild MPF.UI/MPF.UI.csproj /restore
+    #- name: Setup MSBuild
+    #  uses: microsoft/setup-msbuild@v2
+    
+    - name: Setup .NET
+      run: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+            9.0.x
         
     - name: Build MSIX
-      run: msbuild MPF.UI/MPF.UI.csproj `
-        /t:Publish
-        /p:Configuration=Release `
-        /p:GenerateAppxPackageOnBuild=true `
-        /p:AppxBundle=Always `
-        /p:AppxBundlePlatforms="x86|x64|arm64" `
-        /p:AppxPackageSigningEnabled=false `
-        /p:UapAppxPackageBuildMode=StoreUpload `
-        /p:TargetFramework=net9.0-windows
+      run: dotnet publish MPF.UI/MPF.UI.csproj -f net9.0-windows -r win-x64 -c Release --self-contained true --version-suffix $COMMIT -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:GenerateAppxPackageOnBuild=true -p:AppxBundle=Always -p:AppxBundlePlatforms="x86|x64|arm64" -p:AppxPackageSigningEnabled=false -p:UapAppxPackageBuildMode=StoreUpload
+      #run: msbuild MPF.UI/MPF.UI.csproj /restore /t:Publish /p:Configuration=Release /p:TargetFramework=net9.0-windows /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Always /p:AppxBundlePlatforms="x86|x64|arm64" /p:AppxPackageSigningEnabled=false /p:UapAppxPackageBuildMode=StoreUpload
     
     - name: List files
       run: dir -r "MPF.UI\bin\Release\net9.0-windows\"
@@ -38,4 +34,4 @@ jobs:
       with:
         name: MSIX_Package
         path: |
-          **\AppPackage\*.msix*
+          *.msix*
