@@ -22,10 +22,13 @@ jobs:
         dotnet-version: |
             9.0.x
         
-    - name: Build MSIX
+    - name: Build MPF.UI
       run: dotnet publish MPF.UI/MPF.UI.csproj -f net9.0-windows -r win-x64 -c Release --self-contained true -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:GenerateAppxPackageOnBuild=true -p:AppxBundle=Always -p:AppxBundlePlatforms="x86|x64|arm64" -p:AppxPackageSigningEnabled=false -p:UapAppxPackageBuildMode=StoreUpload
       #run: msbuild MPF.UI/MPF.UI.csproj /restore /t:Publish /p:Configuration=Release /p:TargetFramework=net9.0-windows /p:GenerateAppxPackageOnBuild=true /p:AppxBundle=Always /p:AppxBundlePlatforms="x86|x64|arm64" /p:AppxPackageSigningEnabled=false /p:UapAppxPackageBuildMode=StoreUpload
     
+    - name: Make MSIX
+      run: MakeAppx.exe pack 
+
     - name: List files
       run: dir -r "MPF.UI\bin\Release\net9.0-windows\"
 
