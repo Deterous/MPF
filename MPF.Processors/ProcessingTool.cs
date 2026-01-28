@@ -1097,16 +1097,16 @@ namespace MPF.Processors
                 return false;
             
             // Drive entry table must be duplicated exactly
-
-#if NET20
-            var table1 = new byte[207];
-            Array.Copy(ss, 0x661, table1, 0, 207);
-            var table2 = new byte[207];
-            Array.Copy(ss, 0x730, table2, 0, 207);
-            if (Array.Exists(Enumerable.Range(0, a.Length).ToArray(), i => table1[i] != table2[i]))
-#else
-            if (!ss.AsSpan(0x661, 0x730 - 0x661).SequenceEqual(ss.AsSpan(0x730, 0x7FF - 0x730)))
-#endif
+            bool mismatch = false;
+            for (int i = 0; i < 207; i++)
+            {
+                if (ss[0x661 + i] != ss[0x730 + i])
+                {
+                    mismatch = true;
+                    break;
+                }
+            }
+            if (mismatch)
                 return false;
 
             // Remaining checks are only for Xbox360 SS
