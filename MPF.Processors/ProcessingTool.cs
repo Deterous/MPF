@@ -1097,7 +1097,7 @@ namespace MPF.Processors
                 return false;
             
             // Drive entry table must be duplicated exactly
-            if (!data.Skip(0x661).Take(0x730 - 0x661).SequenceEqual(data.Skip(0x730).Take(0x7FF - 0x730)))
+            if (!ss.Skip(0x661).Take(0x730 - 0x661).SequenceEqual(ss.Skip(0x730).Take(0x7FF - 0x730)))
                 return false;
 
             // Remaining checks are only for Xbox360 SS
@@ -1127,6 +1127,23 @@ namespace MPF.Processors
         }
 
         /// <summary>
+        /// Determine if a given SS file has already been repaired and cleaned
+        /// </summary>
+        /// <param name="ss">Path to the SS to check</param>
+        /// <returns>True if SS is repaired and cleaned, false otherwise</returns>
+        public static bool IsFixedSS(string ssPath)
+        {
+            if (!File.Exists(ssPath))
+                return false;
+
+            byte[] ss = File.ReadAllBytes(ssPath);
+            if (ss.Length != 2048)
+                return false;
+
+            return IsFixedSS(ss);
+        }
+
+        /// <summary>
         /// Determine if a given SS has already been repaired and cleaned
         /// </summary>
         /// <param name="ss">Byte array of SS sector</param>
@@ -1136,7 +1153,7 @@ namespace MPF.Processors
             if (ss.Length != 2048)
                 return false;
 
-            if (!IsValid(ss))
+            if (!IsValidSS(ss))
                 return false;
 
             if (!GetXGDType(ss, out int xgdType))

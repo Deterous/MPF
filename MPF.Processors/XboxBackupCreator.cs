@@ -557,11 +557,6 @@ namespace MPF.Processors
             if (xgdType == 0)
                 return false;
 
-            // Don't recreate an already raw SS
-            // (but do save to file, so return true)
-            if (!ProcessingTool.IsCleanSS(ss))
-                return true;
-
             // Example replay table:
             /*
             ----------------------------------------

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using MPF.Processors.OutputFiles;
 using SabreTools.Data.Models.Logiqx;
+using SabreTools.Hashing;
 using SabreTools.RedumpLib.Data;
 #if NET462_OR_GREATER || NETCOREAPP
 using SharpCompress.Archives;
