@@ -118,7 +118,7 @@ namespace MPF.Processors
             if (File.Exists(ssPath))
             {
                 // Ensure a raw SS is saved (recreate from log if needed)
-                RecreateSS(logPath!, ssPath, Path.Combine(outputDirectory, "RawSS.bin"));.
+                RecreateSS(logPath!, ssPath, Path.Combine(outputDirectory, "RawSS.bin"));
 
                 if (ProcessingTool.IsValidSS(ssPath))
                 {
@@ -130,7 +130,11 @@ namespace MPF.Processors
 
                 // Repair and clean SS, only hash SS if successful
                 if (ProcessingTool.FixSS(ssPath, ssPath))
-                    info.CommonDiscInfo.CommentsSpecialFields[SiteCode.SSHash] = HashTool.GetFileHash(ssPath, HashType.CRC32)?.ToUpperInvariant() ?? string.Empty;
+                {
+                    string? ssCrc = HashTool.GetFileHash(ssPath, HashType.CRC32);
+                    if (ssCrc is not null)
+                        info.CommonDiscInfo.CommentsSpecialFields[SiteCode.SSHash] = ssCrc.ToUpperInvariant();
+                }
 
             }
         }
