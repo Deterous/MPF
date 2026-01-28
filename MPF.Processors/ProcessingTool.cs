@@ -1105,7 +1105,7 @@ namespace MPF.Processors
                 return true;
 
             // Determine if XGD3 SS is invalid SSv1 (Original Kreon) or valid SSv2 (0800 / Custom Kreon)
-            if (xgdType != 3)
+            if (xgdType == 3)
             {
                 bool bad_xgd3 = false;
 #if NET20
@@ -1119,8 +1119,8 @@ namespace MPF.Processors
                     return false;
             }
 
-            // Must have correct version and number of CCRT entries
-            if (ss[0x300] != 2 || ss[0x301] != 21 || ss[0x65F] != 0x02 || ss[0x49E != 0x04])
+            // XGD2 must have correct version (2) and number of CCRT entries (21)
+            if (ss[0x300] != 2 || ss[0x301] != 21 || ss[0x65F] != 2)
                 return false;
             
             return true;
