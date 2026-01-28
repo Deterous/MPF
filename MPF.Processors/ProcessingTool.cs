@@ -1095,108 +1095,61 @@ namespace MPF.Processors
             // Must be a valid XGD type
             if (!GetXGDType(ss, out int xgdType))
                 return false;
+            
+            // Drive entry table must be duplicated exactly
+            if (!data.Skip(0x661).Take(0x730 - 0x661).SequenceEqual(data.Skip(0x730).Take(0x7FF - 0x730)))
+                return false;
 
-            // Only continue to check SSv2 for XGD3
-            if (xgdType != 3)
+            // Remaining checks are only for Xbox360 SS
+            if (xgdType == 1)
                 return true;
 
-            // Determine if XGD3 SS.bin is SSv1 (Original Kreon) or SSv2 (0800 / Repaired Kreon)
-#if NET20
-            var checkArr = new byte[72];
-            Array.Copy(ss, 32, checkArr, 0, 72);
-            return Array.Exists(checkArr, x => x != 0);
-#else
-            return ss.Skip(32).Take(72).Any(x => x != 0);
-#endif
-        }
-
-        /// <summary>
-        /// Determine if a given SS.bin is valid but contains zeroed challenge responses
-        /// </summary>
-        /// <param name="ssPath">Path to the SS file to check</param>
-        /// <returns>True if valid but partial SS.bin, false otherwise</returns>
-        public static bool IsValidPartialSS(string ssPath)
-        {
-            if (!File.Exists(ssPath))
-                return false;
-
-            byte[] ss = File.ReadAllBytes(ssPath);
-            if (ss.Length != 2048)
-                return false;
-
-            return IsValidPartialSS(ss);
-        }
-
-        /// <summary>
-        /// Determine if a given SS is valid but contains zeroed challenge responses
-        /// </summary>
-        /// <param name="ss">Byte array of SS sector</param>
-        /// <returns>True if SS is a valid but partial SS, false otherwise</returns>
-        public static bool IsValidPartialSS(byte[] ss)
-        {
-            // Check 1 sector long
-            if (ss.Length != 2048)
-                return false;
-
-            // Must be a valid XGD type
-            if (!GetXGDType(ss, out int xgdType))
-                return false;
-
-            // Determine challenge table offset, XGD1 is never partial
-            int ccrt_offset = 0;
-            if (xgdType == 1)
-                return false;
-            else if (xgdType == 2)
-                ccrt_offset = 0x200;
-            else if (xgdType == 3)
-                ccrt_offset = 0x20;
-
-            int[] entry_offsets = [0, 9, 18, 27, 36, 45, 54, 63];
-            int[] entry_lengths = [8, 8, 8, 8, 4, 4, 4, 4];
-            for (int i = 0; i < entry_offsets.Length; i++)
+            // Determine if XGD3 SS is invalid SSv1 (Original Kreon) or valid SSv2 (0800 / Custom Kreon)
+            if (xgdType != 3)
             {
-                bool emptyResponse = true;
-                for (int b = 0; b < entry_lengths[i]; b++)
-                {
-                    if (ss[ccrt_offset + entry_offsets[i] + b] != 0x00)
-                    {
-                        emptyResponse = false;
-                        break;
-                    }
-                }
-
-                if (emptyResponse)
-                    return true;
+                bool bad_xgd3 = false;
+#if NET20
+                var checkArr = new byte[72];
+                Array.Copy(ss, 32, checkArr, 0, 72);
+                bad_xgd3 = Array.Exists(checkArr, x => x != 0);
+#else
+                bad_xgd3 = ss.Skip(32).Take(72).Any(x => x != 0);
+#endif
+                if (bad_xgd3)
+                    return false;
             }
 
-            return false;
+            // Must have correct version and number of CCRT entries
+            if (ss[0x300] != 2 || ss[0x301] != 21 || ss[0x65F] != 0x02 || ss[0x49E != 0x04])
+                return false;
+            
+            return true;
         }
 
         /// <summary>
-        /// Determine if a given SS has already been cleaned
+        /// Determine if a given SS has already been repaired and cleaned
         /// </summary>
         /// <param name="ss">Byte array of SS sector</param>
-        /// <returns>True if SS is clean, false otherwise</returns>
-        public static bool IsCleanSS(byte[] ss)
+        /// <returns>True if SS is repaired and cleaned, false otherwise</returns>
+        public static bool IsFixedSS(byte[] ss)
         {
             if (ss.Length != 2048)
                 return false;
 
-            if (!GetXGDType(ss, out int xgdType))
+            if (!IsValid(ss))
                 return false;
 
-#if NET20
-            var checkArr = new byte[72];
-            Array.Copy(ss, 32, checkArr, 0, 72);
-            if (xgdType == 3 && Array.Exists(checkArr, x => x != 0))
-#else
-            if (xgdType == 3 && ss.Skip(32).Take(72).Any(x => x != 0))
-#endif
+            if (!GetXGDType(ss, out int xgdType))
+                return false;
+            
+            // Valid XGD1 is always fixed
+            if (xgdType == 1)
+                return true;
+
+            if (xgdType == 3)
             {
                 // Check for a cleaned SSv2
-
                 int rtOffset = 0x24;
-
                 if (ss[rtOffset + 36] != 0x01)
                     return false;
                 if (ss[rtOffset + 37] != 0x00)
@@ -1232,55 +1185,80 @@ namespace MPF.Processors
             }
             else
             {
-                // Check for a cleaned SSv1
-
+                // Check for a cleaned XGD2
                 int rtOffset = 0x204;
-
                 if (ss[rtOffset + 36] != 0x01)
                     return false;
                 if (ss[rtOffset + 37] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 39] != 0x00)
+                if (ss[rtOffset + 39] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 40] != 0x00)
+                if (ss[rtOffset + 40] != 0x00)
                     return false;
                 if (ss[rtOffset + 45] != 0x5B)
                     return false;
                 if (ss[rtOffset + 46] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 48] != 0x00)
+                if (ss[rtOffset + 48] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 49] != 0x00)
+                if (ss[rtOffset + 49] != 0x00)
                     return false;
                 if (ss[rtOffset + 54] != 0xB5)
                     return false;
                 if (ss[rtOffset + 55] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 57] != 0x00)
+                if (ss[rtOffset + 57] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 58] != 0x00)
+                if (ss[rtOffset + 58] != 0x00)
                     return false;
                 if (ss[rtOffset + 63] != 0x0F)
                     return false;
                 if (ss[rtOffset + 64] != 0x01)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 66] != 0x00)
+                if (ss[rtOffset + 66] != 0x00)
                     return false;
-                if (xgdType == 2 && ss[rtOffset + 67] != 0x00)
+                if (ss[rtOffset + 67] != 0x00)
                     return false;
             }
 
-            // All angles are as expected, it is clean
+            // Determine challenge table offset
+            int ccrt_offset = 0;
+            if (xgdType == 2)
+                ccrt_offset = 0x200;
+            else if (xgdType == 3)
+                ccrt_offset = 0x20;
+
+            // Check for empty challenge responses
+            int[] entry_offsets = [0, 9, 18, 27, 36, 45, 54, 63];
+            int[] entry_lengths = [8, 8, 8, 8, 4, 4, 4, 4];
+            for (int i = 0; i < entry_offsets.Length; i++)
+            {
+                bool emptyResponse = true;
+                for (int b = 0; b < entry_lengths[i]; b++)
+                {
+                    if (ss[ccrt_offset + entry_offsets[i] + b] != 0x00)
+                    {
+                        emptyResponse = false;
+                        break;
+                    }
+                }
+
+                if (emptyResponse)
+                    return false;
+            }
+
+            // TODO: Check for correct challenge responses
+
             return true;
         }
 
         /// <summary>
-        /// Clean a rawSS.bin file and write it to a file
+        /// Repair and clean a rawSS.bin file and write it to a file
         /// </summary>
         /// <param name="rawSS">Path to the raw SS file to read from</param>
-        /// <param name="cleanSS">Path to the clean SS file to write to</param>
+        /// <param name="cleanSS">Path to the fixed SS file to write to</param>
         /// <returns>True if successful, false otherwise</returns>
-        public static bool CleanSS(string rawSS, string cleanSS)
+        public static bool FixSS(string rawSS, string fixedSS)
         {
             if (!File.Exists(rawSS))
                 return false;
@@ -1289,20 +1267,20 @@ namespace MPF.Processors
             if (ss.Length != 2048)
                 return false;
 
-            if (!CleanSS(ss))
+            if (!FixSS(ss))
                 return false;
 
-            File.WriteAllBytes(cleanSS, ss);
+            File.WriteAllBytes(fixedSS, ss);
             return true;
         }
 
         /// <summary>
-        /// Fix a SS sector to its predictable clean form.
-        /// With help from ss_sector_range
+        /// Repair and clean a SS sector to its valid, predictable clean form.
+        /// Note: Also see ss_sector_range and abgx360
         /// </summary>
         /// <param name="ss">Byte array of raw SS sector</param>
         /// <returns>True if successful, false otherwise</returns>
-        public static bool CleanSS(byte[] ss)
+        public static bool FixSS(byte[] ss)
         {
             // Must be entire sector
             if (ss.Length != 2048)
@@ -1329,11 +1307,12 @@ namespace MPF.Processors
             if (xgdType == 3 && !ssv2)
                 return false;
 
+            // Clean SS (set fixed angles)
             switch (xgdType)
             {
                 case 1:
-                    // Leave Original Xbox SS.bin unchanged
-                    return true;
+                    // Cannot clean XGD1 SS.bin
+                    break;
 
                 case 2:
                     // Fix standard SSv1 ss.bin
@@ -1356,7 +1335,7 @@ namespace MPF.Processors
                     ss[580] = 1;   // 0x01
                     ss[582] = 0;   // 0x00
                     ss[583] = 0;   // 0x00
-                    return true;
+                    break;
 
                 case 3:
                     if (ssv2)
@@ -1395,13 +1374,16 @@ namespace MPF.Processors
                         ss[579] = 15;  // 0x0F
                         ss[580] = 1;   // 0x01
                     }
-
-                    return true;
+                    break;
 
                 default:
                     // Unknown XGD type
                     return false;
             }
+
+            // TODO: Repair challenge responses
+
+            return true;
         }
 
         /// <summary>
