@@ -3,6 +3,7 @@ using System.IO;
 #if NET35_OR_GREATER || NETCOREAPP
 using System.Linq;
 #endif
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -1168,7 +1169,7 @@ namespace MPF.Processors
             if (!GetXGDType(ss, out int xgdType))
                 return false;
             
-            // Valid XGD1 is always fixed
+            // XGD1 can't be fixed
             if (xgdType == 1)
                 return true;
 
@@ -1209,7 +1210,7 @@ namespace MPF.Processors
                 if (ss[rtOffset + 67] != 0x01)
                     return false;
             }
-            else
+            else if (xgdType == 2)
             {
                 // Check for a cleaned XGD2
                 int rtOffset = 0x204;
@@ -1247,33 +1248,8 @@ namespace MPF.Processors
                     return false;
             }
 
-            // Determine challenge table offset
-            int ccrt_offset = 0;
-            if (xgdType == 2)
-                ccrt_offset = 0x200;
-            else if (xgdType == 3)
-                ccrt_offset = 0x20;
-
-            // Check for empty challenge responses
-            int[] entry_offsets = [0, 9, 18, 27, 36, 45, 54, 63];
-            int[] entry_lengths = [8, 8, 8, 8, 4, 4, 4, 4];
-            for (int i = 0; i < entry_offsets.Length; i++)
-            {
-                bool emptyResponse = true;
-                for (int b = 0; b < entry_lengths[i]; b++)
-                {
-                    if (ss[ccrt_offset + entry_offsets[i] + b] != 0x00)
-                    {
-                        emptyResponse = false;
-                        break;
-                    }
-                }
-
-                if (emptyResponse)
-                    return false;
-            }
-
-            // TODO: Check for correct challenge responses
+            // Check challenge responses
+            FixSS(ss, false);
 
             return true;
         }
@@ -1306,7 +1282,7 @@ namespace MPF.Processors
         /// </summary>
         /// <param name="ss">Byte array of raw SS sector</param>
         /// <returns>True if successful, false otherwise</returns>
-        public static bool FixSS(byte[] ss)
+        public static bool FixSS(byte[] ss, bool write = true)
         {
             // Must be entire sector
             if (ss.Length != 2048)
@@ -1337,34 +1313,37 @@ namespace MPF.Processors
             switch (xgdType)
             {
                 case 1:
-                    // Cannot clean XGD1 SS.bin
-                    break;
+                    // Cannot clean or fix XGD1 SS
+                    return true;
 
                 case 2:
                     // Fix standard SSv1 ss.bin
-                    ss[552] = 1;   // 0x01
-                    ss[553] = 0;   // 0x00
-                    ss[555] = 0;   // 0x00
-                    ss[556] = 0;   // 0x00
+                    if (write)
+                    {
+                        ss[552] = 1;   // 0x01
+                        ss[553] = 0;   // 0x00
+                        ss[555] = 0;   // 0x00
+                        ss[556] = 0;   // 0x00
 
-                    ss[561] = 91;  // 0x5B
-                    ss[562] = 0;   // 0x00
-                    ss[564] = 0;   // 0x00
-                    ss[565] = 0;   // 0x00
+                        ss[561] = 91;  // 0x5B
+                        ss[562] = 0;   // 0x00
+                        ss[564] = 0;   // 0x00
+                        ss[565] = 0;   // 0x00
 
-                    ss[570] = 181; // 0xB5
-                    ss[571] = 0;   // 0x00
-                    ss[573] = 0;   // 0x00
-                    ss[574] = 0;   // 0x00
+                        ss[570] = 181; // 0xB5
+                        ss[571] = 0;   // 0x00
+                        ss[573] = 0;   // 0x00
+                        ss[574] = 0;   // 0x00
 
-                    ss[579] = 15;  // 0x0F
-                    ss[580] = 1;   // 0x01
-                    ss[582] = 0;   // 0x00
-                    ss[583] = 0;   // 0x00
+                        ss[579] = 15;  // 0x0F
+                        ss[580] = 1;   // 0x01
+                        ss[582] = 0;   // 0x00
+                        ss[583] = 0;   // 0x00
+                    }
                     break;
 
                 case 3:
-                    if (ssv2)
+                    if (write && ssv2)
                     {
                         ss[72] = 1;   // 0x01
                         ss[73] = 0;   // 0x00
@@ -1386,7 +1365,7 @@ namespace MPF.Processors
                         ss[102] = 15;  // 0x0F
                         ss[103] = 1;   // 0x01
                     }
-                    else
+                    else if (write)
                     {
                         ss[552] = 1;   // 0x01
                         ss[553] = 0;   // 0x00
@@ -1404,6 +1383,74 @@ namespace MPF.Processors
 
                 default:
                     // Unknown XGD type
+                    return false;
+            }
+
+            // Determine challenge table offset
+            int ccrt_offset = 0;
+            if (xgdType == 2)
+                ccrt_offset = 0x200;
+            else if (xgdType == 3)
+                ccrt_offset = 0x20;
+
+            // Setup decryptor
+#if NET20
+            using RijndaelManaged aes = new RijndaelManaged();
+            aes.BlockSize = 128;
+#else
+            using Aes aes = Aes.Create();
+#endif
+            aes.Key = new byte[] { 0xD1, 0xE3, 0xB3, 0x3A, 0x6C, 0x1E, 0xF7, 0x70, 0x5F, 0x6D, 0xE9, 0x3B, 0xB6, 0xC0, 0xDC, 0x71 };
+            aes.Mode = CipherMode.ECB;
+            aes.Padding = PaddingMode.None;
+            using ICryptoTransform decryptor = aes.CreateDecryptor();
+
+            // Perform decryption
+            byte[] iv = new byte[16];
+            byte[] dcrt = new byte[252];
+            bool ct01_found = false;
+            for (int i = 0; i < 240; i+=16)
+            {
+                decryptor.TransformBlock(ss, 0x304 + i, 16, dcrt, i);
+                for (int j = 0; j < 16; j++)
+                {
+                    dcrt[i + j] ^= iv[j];
+                    iv[j] = ss[0x304 + i + j];
+                }
+                // Validate challenge type 1
+                if (dcrt[i] == 1)
+                {
+                    // Cannot fix SS with two type 1 challenges
+                    if (ct01_found)
+                        return false;
+                    ct01_found = true;
+                    // Challenge type 1 must match CPR_MAI
+                    int cpr_mai_offset = (xgdType == 3) ? 0xF0 : 0x2D0;
+                    if (dcrt[i + 4] != ss[cpr_mai_offset] || dcrt[i + 5] != ss[cpr_mai_offset + 1] || dcrt[i + 6] != ss[cpr_mai_offset + 2] || dcrt[i + 7] != ss[cpr_mai_offset + 3])
+                        return false;
+                }
+                // Cannot fix unknown challenge types
+                else if (dcrt[i] != 0xE0 && dcrt[i] != 0x14 && dcrt[i] != 0x15 && dcrt[i] != 0x24 && dcrt[i] != 0x25 && (dcrt[i] & 0xF) != 0xF0)
+                    return false;
+            }
+            Array.Copy(ss, 0x304 + 240, dcrt, 240, 12);
+
+            // Check for empty challenge responses
+            int[] entryOffsets = [0, 9, 18, 27, 36, 45, 54, 63];
+            int[] entryLengths = [8, 8, 8, 8, 4, 4, 4, 4];
+            for (int i = 0; i < entryOffsets.Length; i++)
+            {
+                bool emptyResponse = true;
+                for (int b = 0; b < entryLengths[i]; b++)
+                {
+                    if (ss[ccrt_offset + entryOffsets[i] + b] != 0x00)
+                    {
+                        emptyResponse = false;
+                        break;
+                    }
+                }
+
+                if (emptyResponse)
                     return false;
             }
 
