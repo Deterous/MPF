@@ -1294,6 +1294,10 @@ namespace MPF.Processors
             if (!GetXGDType(ss, out int xgdType))
                 return false;
 
+            // Cannot fix XGD1
+            if (xgdType == 1)
+                return true;
+
             // Determine if XGD3 SS.bin is SSv1 (Original Kreon) or SSv2 (0800 / Repaired Kreon)
 #if NET20
             var checkArr = new byte[72];
@@ -1307,13 +1311,171 @@ namespace MPF.Processors
             if (xgdType == 3 && !ssv2)
                 return false;
 
+            // Must be 21 challenge entries
+            if (ss[0x660] != 21)
+                return false;
+
+            // Setup decryptor
+#if NET20
+            using RijndaelManaged aes = new RijndaelManaged();
+            aes.BlockSize = 128;
+#else
+            using Aes aes = Aes.Create();
+#endif
+            aes.Key = new byte[] { 0xD1, 0xE3, 0xB3, 0x3A, 0x6C, 0x1E, 0xF7, 0x70, 0x5F, 0x6D, 0xE9, 0x3B, 0xB6, 0xC0, 0xDC, 0x71 };
+            aes.Mode = CipherMode.CBC;
+            aes.Padding = PaddingMode.None;
+            using ICryptoTransform decryptor = aes.CreateDecryptor();
+
+            // Perform decryption
+            byte[] iv = new byte[16];
+            byte[] dcrt = new byte[252];
+            bool ct01_found = false;
+            for (int i = 0; i < 240; i+=16)
+                decryptor.TransformBlock(ss, 0x304 + i, 16, dcrt, i);
+            Array.Copy(ss, 0x304 + 240, dcrt, 240, 12);
+
+            // Rebuild challenge response table
+            var cids = new Dictionary<byte, byte>();
+            for (int i = 0; i < dcrt.Length; i+=12)
+            {
+                // Validate challenge type 1
+                if (dcrt[i] == 1)
+                {
+                    // Cannot fix SS with two type 1 challenges
+                    if (ct01_found)
+                        return false;
+                    ct01_found = true;
+                    // Challenge type 1 must match CPR_MAI
+                    int cpr_mai_offset = (xgdType == 3) ? 0xF0 : 0x2D0;
+                    if (dcrt[i + 4] != ss[cpr_mai_offset] || dcrt[i + 5] != ss[cpr_mai_offset + 1] || dcrt[i + 6] != ss[cpr_mai_offset + 2] || dcrt[i + 7] != ss[cpr_mai_offset + 3])
+                        return false;
+                }
+                // Check CIDs of known challenges
+                else if (dcrt[i] == 0x14 || dcrt[i] == 0x15 || dcrt[i] == 0x24 || dcrt[i] == 0x25 || dcrt[i] != 0xE0 || (dcrt[i] & 0xF) != 0xF0)
+                {
+                    // Cannot fix SS with duplicate Challenge IDs
+                    if (cids.ContainsKey(dcrt[i + 1]))
+                        return false;
+                    cids.Add(dcrt[i + 1], i);
+                }
+                // Cannot fix SS with unknown challenge types
+                else
+                    return false;
+            }
+
+            // Determine challenge table offset
+            int ccrt_offset = 0;
+            if (xgdType == 2)
+                ccrt_offset = 0x200;
+            else if (xgdType == 3)
+                ccrt_offset = 0x20;
+
+            // Repair challenge table
+            for (int i = 0; i < 23; i++)
+            {
+                // Cannot rebuild SS with orphan challenge ID
+                if (!cids.TryGetValue(ss[0x730 + i * 9 + 1], out byte cOffset))
+                    return;
+
+                // Validate challenge type with response type
+                byte rOffset = 0x730 + i * 9;
+                bool angle_challenge = false;
+                bool other_challenge = false;
+                int challenge_count = 0;
+                switch (ss[cOffset])
+                {
+                    case 0x14:
+                        if (ss[rOffset] != 3)
+                            return false;
+                        challenge_count += 1;
+                        // Challenge must be in expected order
+                        if (challenge_count > 5)
+                            return false;
+                        break;
+                    case 0x15:
+                        if (ss[rOffset] != 1)
+                            return false;
+                        challenge_count += 1;
+                        // Challenge must be in expected order
+                        if (challenge_count < 5)
+                            return false;
+                        break;
+                    case 0x24:
+                        if (ss[rOffset] != 7)
+                            return false;
+                        challenge_count += 1;
+                        // Challenge must be in expected order
+                        if (challenge_count < 5 || challenge_count > 8)
+                            return false;
+                        angle_challenge = true;
+                        break;
+                    case 0x25:
+                        if (ss[rOffset] != 9)
+                            return false;
+                        challenge_count += 1;
+                        // Challenge must be in expected order
+                        if (challenge_count < 5 || challenge_count > 8)
+                            return false;
+                        angle_challenge = true;
+                        break;
+                    default:
+                        other_challenge = true;
+                        break;
+                }
+
+                // Skip other challenges
+                if (other_challenge)
+                    continue;
+
+                // Set/check challenge data
+                if (!write && ss[ccrt_offset + i * 9] != ss[cOffset + 4])
+                    return false;
+                else
+                    ss[ccrt_offset + i * 9] = ss[cOffset + 4];
+                if (!write && ss[ccrt_offset + i * 9 + 1] != ss[cOffset + 5])
+                    return false
+                else
+                    ss[ccrt_offset + i * 9 + 1] = ss[cOffset + 5];
+                if (!write && ss[ccrt_offset + i * 9 + 2] != ss[cOffset + 6])
+                    return false
+                else
+                    ss[ccrt_offset + i * 9 + 2] = ss[cOffset + 6];
+                if (!write && ss[ccrt_offset + i * 9 + 3] != ss[cOffset + 7])
+                    return false
+                else
+                    ss[ccrt_offset + i * 9 + 2] = ss[cOffset + 7];
+
+                // Set challenge response for non-angle challenges
+                if (!angle_challenge)
+                {
+                    if(!write && ss[ccrt_offset + i * 9 + 4] != ss[cOffset + 8])
+                        return false;
+                    else
+                        ss[ccrt_offset + i * 9 + 4] = ss[cOffset + 8];
+                    if(!write && ss[ccrt_offset + i * 9 + 5] != ss[cOffset + 9])
+                        return false;
+                    else
+                        ss[ccrt_offset + i * 9 + 5] = ss[cOffset + 9];
+                    if(!write && ss[ccrt_offset + i * 9 + 6] != ss[cOffset + 10])
+                        return false;
+                    else
+                        ss[ccrt_offset + i * 9 + 6] = ss[cOffset + 10];
+                    if(!write && ss[ccrt_offset + i * 9 + 7] != ss[cOffset + 11])
+                        return false;
+                    else
+                        ss[ccrt_offset + i * 9 + 7] = ss[cOffset + 11];
+                    if(!write && ss[ccrt_offset + i * 9 + 8] != 0)
+                        return false;
+                    else
+                        ss[ccrt_offset + i * 9 + 8] = 0;
+                }
+                
+            }
+
             // Clean SS (set fixed angles)
             switch (xgdType)
             {
-                case 1:
-                    // Cannot clean or fix XGD1 SS
-                    return true;
-
                 case 2:
                     // Fix standard SSv1 ss.bin
                     if (write)
@@ -1369,80 +1531,6 @@ namespace MPF.Processors
                     // Unknown XGD type
                     return false;
             }
-
-            // Must be 21 challenge entries
-            if (ss[0x660] != 21)
-                return false;
-
-            // Determine challenge table offset
-            int ccrt_offset = 0;
-            if (xgdType == 2)
-                ccrt_offset = 0x200;
-            else if (xgdType == 3)
-                ccrt_offset = 0x20;
-
-            // Setup decryptor
-#if NET20
-            using RijndaelManaged aes = new RijndaelManaged();
-            aes.BlockSize = 128;
-#else
-            using Aes aes = Aes.Create();
-#endif
-            aes.Key = new byte[] { 0xD1, 0xE3, 0xB3, 0x3A, 0x6C, 0x1E, 0xF7, 0x70, 0x5F, 0x6D, 0xE9, 0x3B, 0xB6, 0xC0, 0xDC, 0x71 };
-            aes.Mode = CipherMode.ECB;
-            aes.Padding = PaddingMode.None;
-            using ICryptoTransform decryptor = aes.CreateDecryptor();
-
-            // Perform decryption
-            byte[] iv = new byte[16];
-            byte[] dcrt = new byte[252];
-            bool ct01_found = false;
-            for (int i = 0; i < 240; i+=16)
-            {
-                decryptor.TransformBlock(ss, 0x304 + i, 16, dcrt, i);
-                for (int j = 0; j < 16; j++)
-                {
-                    dcrt[i + j] ^= iv[j];
-                    iv[j] = ss[0x304 + i + j];
-                }
-
-                // Validate challenge type 1
-                if (dcrt[i] == 1)
-                {
-                    // Cannot fix SS with two type 1 challenges
-                    if (ct01_found)
-                        return false;
-                    ct01_found = true;
-                    // Challenge type 1 must match CPR_MAI
-                    int cpr_mai_offset = (xgdType == 3) ? 0xF0 : 0x2D0;
-                    if (dcrt[i + 4] != ss[cpr_mai_offset] || dcrt[i + 5] != ss[cpr_mai_offset + 1] || dcrt[i + 6] != ss[cpr_mai_offset + 2] || dcrt[i + 7] != ss[cpr_mai_offset + 3])
-                        return false;
-                }
-                // Cannot fix unknown challenge types
-                else if (dcrt[i] != 0xE0 && dcrt[i] != 0x14 && dcrt[i] != 0x15 && dcrt[i] != 0x24 && dcrt[i] != 0x25 && (dcrt[i] & 0xF) != 0xF0)
-                    return false;
-            }
-            Array.Copy(ss, 0x304 + 240, dcrt, 240, 12);
-
-            int[] entryOffsets = [0, 9, 18, 27, 36, 45, 54, 63];
-            int[] entryLengths = [8, 8, 8, 8, 4, 4, 4, 4];
-            for (int i = 0; i < entryOffsets.Length; i++)
-            {
-                bool emptyResponse = true;
-                for (int b = 0; b < entryLengths[i]; b++)
-                {
-                    if (ss[ccrt_offset + entryOffsets[i] + b] != 0x00)
-                    {
-                        emptyResponse = false;
-                        break;
-                    }
-                }
-
-                if (emptyResponse)
-                    return false;
-            }
-
-            // TODO: Repair challenge responses
 
             return true;
         }
