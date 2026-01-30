@@ -966,7 +966,7 @@ namespace MPF.Processors
         #region Xbox and Xbox 360
 
         /// <summary>
-        /// Get the XGD1 Master ID (XMID) information
+        /// Get the XGD1 Manufacturing ID (XMID) information
         /// </summary>
         /// <param name="dmi">DMI.bin file location</param>
         /// <returns>String representation of the XGD1 DMI information, empty string on error</returns>
@@ -1248,10 +1248,8 @@ namespace MPF.Processors
                     return false;
             }
 
-            // Check challenge responses
-            FixSS(ss, false);
-
-            return true;
+            // Check challenge responses (don't write)
+            return FixSS(ss, false);
         }
 
         /// <summary>
@@ -1365,26 +1363,16 @@ namespace MPF.Processors
                         ss[102] = 15;  // 0x0F
                         ss[103] = 1;   // 0x01
                     }
-                    else if (write)
-                    {
-                        ss[552] = 1;   // 0x01
-                        ss[553] = 0;   // 0x00
-
-                        ss[561] = 91;  // 0x5B
-                        ss[562] = 0;   // 0x00
-
-                        ss[570] = 181; // 0xB5
-                        ss[571] = 0;   // 0x00
-
-                        ss[579] = 15;  // 0x0F
-                        ss[580] = 1;   // 0x01
-                    }
                     break;
 
                 default:
                     // Unknown XGD type
                     return false;
             }
+
+            // Must be 21 challenge entries
+            if (ss[0x660] != 21)
+                return false;
 
             // Determine challenge table offset
             int ccrt_offset = 0;
@@ -1417,6 +1405,7 @@ namespace MPF.Processors
                     dcrt[i + j] ^= iv[j];
                     iv[j] = ss[0x304 + i + j];
                 }
+
                 // Validate challenge type 1
                 if (dcrt[i] == 1)
                 {
@@ -1435,7 +1424,6 @@ namespace MPF.Processors
             }
             Array.Copy(ss, 0x304 + 240, dcrt, 240, 12);
 
-            // Check for empty challenge responses
             int[] entryOffsets = [0, 9, 18, 27, 36, 45, 54, 63];
             int[] entryLengths = [8, 8, 8, 8, 4, 4, 4, 4];
             for (int i = 0; i < entryOffsets.Length; i++)
