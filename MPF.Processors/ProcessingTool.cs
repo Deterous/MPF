@@ -1376,7 +1376,7 @@ namespace MPF.Processors
             else if (xgdType == 3)
                 ccrt_offset = 0x20;
 
-            // Repair challenge table
+            // Repair challenge table (challenge entries 22 and 23 are zeroed)
             int challenge_count = 0;
             for (int i = 0; i < 21; i++)
             {
@@ -1407,7 +1407,7 @@ namespace MPF.Processors
 
                         challenge_count += 1;
                         // Challenge must be in expected order
-                        if (challenge_count < 5)
+                        if (challenge_count > 5)
                             return false;
 
                         break;
