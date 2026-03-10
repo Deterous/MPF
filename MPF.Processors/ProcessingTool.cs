@@ -1380,13 +1380,14 @@ namespace MPF.Processors
             int challenge_count = 0;
             for (int i = 0; i < 21; i++)
             {
+                int rOffset = 0x730 + i * 9;
                 // Cannot rebuild SS with orphan challenge ID
-                if (!cids.TryGetValue(ss[0x730 + i * 9 + 1], out int cOffset))
+                if (!cids.TryGetValue(ss[rOffset + 1], out int cOffset))
                     return false;
 
                 // Validate challenge type with response type
-                Console.WriteLine("1");
-                int rOffset = 0x730 + i * 9;
+                Console.WriteLine($"challange ID {dcrt[cOffset]}");
+                Console.WriteLine($"response ID {ss[rOffset]}");
                 bool angle_challenge = false;
                 bool other_challenge = false;
                 switch (dcrt[cOffset])
