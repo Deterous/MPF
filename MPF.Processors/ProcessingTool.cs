@@ -1364,6 +1364,8 @@ namespace MPF.Processors
                 {
                     return false;
                 }
+                
+                // Map challenge ID to challenge type
                 cids.Add(dcrt[i + 1], i);
             }
 
@@ -1387,7 +1389,7 @@ namespace MPF.Processors
                 int rOffset = 0x730 + i * 9;
                 bool angle_challenge = false;
                 bool other_challenge = false;
-                switch (ss[cOffset])
+                switch (dcrt[cOffset])
                 {
                     case 0x14:
                         if (ss[rOffset] != 3)
