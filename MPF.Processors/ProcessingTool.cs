@@ -1386,8 +1386,9 @@ namespace MPF.Processors
                     return false;
 
                 // Validate challenge type with response type
-                Console.WriteLine($"challange ID {dcrt[cOffset]}");
-                Console.WriteLine($"response ID {ss[rOffset]}");
+                Console.WriteLine($"i {i}");
+                Console.WriteLine($"challenge ID {dcrt[cOffset]}");
+                Console.WriteLine($"response ID {ss[rOffset + 1]}");
                 bool angle_challenge = false;
                 bool other_challenge = false;
                 switch (dcrt[cOffset])
@@ -1424,7 +1425,7 @@ namespace MPF.Processors
                         angle_challenge = true;
                         break;
                     case 0x25:
-                        if (ss[rOffset] != 9)
+                        if (ss[rOffset] != 5)
                             return false;
 
                         challenge_count += 1;
@@ -1492,6 +1493,7 @@ namespace MPF.Processors
                     else
                         ss[ccrt_offset + i * 9 + 8] = 0;
                 }
+                Console.WriteLine("4");
             }
             Console.WriteLine("cleaning...");
 
