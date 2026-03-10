@@ -1445,46 +1445,46 @@ namespace MPF.Processors
                 Console.WriteLine("3");
 
                 // Set/check challenge data
-                if (!write && ss[ccrt_offset + i * 9] != ss[cOffset + 4])
+                if (!write && ss[ccrt_offset + i * 9] != dcrt[cOffset + 4])
                     return false;
                 else
-                    ss[ccrt_offset + i * 9] = ss[cOffset + 4];
-                if (!write && ss[ccrt_offset + i * 9 + 1] != ss[cOffset + 5])
+                    ss[ccrt_offset + i * 9] = dcrt[cOffset + 4];
+                if (!write && ss[ccrt_offset + i * 9 + 1] != dcrt[cOffset + 5])
                     return false;
                 else
-                    ss[ccrt_offset + i * 9 + 1] = ss[cOffset + 5];
-                if (!write && ss[ccrt_offset + i * 9 + 2] != ss[cOffset + 6])
+                    ss[ccrt_offset + i * 9 + 1] = dcrt[cOffset + 5];
+                if (!write && ss[ccrt_offset + i * 9 + 2] != dcrt[cOffset + 6])
                     return false;
                 else
-                    ss[ccrt_offset + i * 9 + 2] = ss[cOffset + 6];
-                if (!write && ss[ccrt_offset + i * 9 + 3] != ss[cOffset + 7])
+                    ss[ccrt_offset + i * 9 + 2] = dcrt[cOffset + 6];
+                if (!write && ss[ccrt_offset + i * 9 + 3] != dcrt[cOffset + 7])
                     return false;
                 else
-                    ss[ccrt_offset + i * 9 + 3] = ss[cOffset + 7];
+                    ss[ccrt_offset + i * 9 + 3] = dcrt[cOffset + 7];
 
                 // Set challenge response for non-angle challenges
                 if (!angle_challenge)
                 {
                     Console.WriteLine("11");
-                    if(!write && ss[ccrt_offset + i * 9 + 4] != ss[cOffset + 8])
+                    if(!write && ss[ccrt_offset + i * 9 + 4] != dcrt[cOffset + 8])
                         return false;
                     else
-                        ss[ccrt_offset + i * 9 + 4] = ss[cOffset + 8];
+                        ss[ccrt_offset + i * 9 + 4] = dcrt[cOffset + 8];
                     Console.WriteLine("12");
-                    if(!write && ss[ccrt_offset + i * 9 + 5] != ss[cOffset + 9])
+                    if(!write && ss[ccrt_offset + i * 9 + 5] != dcrt[cOffset + 9])
                         return false;
                     else
-                        ss[ccrt_offset + i * 9 + 5] = ss[cOffset + 9];
+                        ss[ccrt_offset + i * 9 + 5] = dcrt[cOffset + 9];
                     Console.WriteLine("13");
-                    if(!write && ss[ccrt_offset + i * 9 + 6] != ss[cOffset + 10])
+                    if(!write && ss[ccrt_offset + i * 9 + 6] != dcrt[cOffset + 10])
                         return false;
                     else
-                        ss[ccrt_offset + i * 9 + 6] = ss[cOffset + 10];
+                        ss[ccrt_offset + i * 9 + 6] = dcrt[cOffset + 10];
                     Console.WriteLine("14");
-                    if(!write && ss[ccrt_offset + i * 9 + 7] != ss[cOffset + 11])
+                    if(!write && ss[ccrt_offset + i * 9 + 7] != dcrt[cOffset + 11])
                         return false;
                     else
-                        ss[ccrt_offset + i * 9 + 7] = ss[cOffset + 11];
+                        ss[ccrt_offset + i * 9 + 7] = dcrt[cOffset + 11];
                     Console.WriteLine("15");
                     if(!write && ss[ccrt_offset + i * 9 + 8] != 0)
                         return false;
