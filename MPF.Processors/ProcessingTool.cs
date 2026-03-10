@@ -1383,6 +1383,7 @@ namespace MPF.Processors
                     return false;
 
                 // Validate challenge type with response type
+                Console.WriteLine("1");
                 int rOffset = 0x730 + i * 9;
                 bool angle_challenge = false;
                 bool other_challenge = false;
@@ -1436,8 +1437,10 @@ namespace MPF.Processors
                 }
 
                 // Skip other challenges
+                Console.WriteLine("2");
                 if (other_challenge)
                     continue;
+                Console.WriteLine("3");
 
                 // Set/check challenge data
                 if (!write && ss[ccrt_offset + i * 9] != ss[cOffset + 4])
@@ -1460,28 +1463,34 @@ namespace MPF.Processors
                 // Set challenge response for non-angle challenges
                 if (!angle_challenge)
                 {
+                    Console.WriteLine("11");
                     if(!write && ss[ccrt_offset + i * 9 + 4] != ss[cOffset + 8])
                         return false;
                     else
                         ss[ccrt_offset + i * 9 + 4] = ss[cOffset + 8];
+                    Console.WriteLine("12");
                     if(!write && ss[ccrt_offset + i * 9 + 5] != ss[cOffset + 9])
                         return false;
                     else
                         ss[ccrt_offset + i * 9 + 5] = ss[cOffset + 9];
+                    Console.WriteLine("13");
                     if(!write && ss[ccrt_offset + i * 9 + 6] != ss[cOffset + 10])
                         return false;
                     else
                         ss[ccrt_offset + i * 9 + 6] = ss[cOffset + 10];
+                    Console.WriteLine("14");
                     if(!write && ss[ccrt_offset + i * 9 + 7] != ss[cOffset + 11])
                         return false;
                     else
                         ss[ccrt_offset + i * 9 + 7] = ss[cOffset + 11];
+                    Console.WriteLine("15");
                     if(!write && ss[ccrt_offset + i * 9 + 8] != 0)
                         return false;
                     else
                         ss[ccrt_offset + i * 9 + 8] = 0;
                 }
             }
+            Console.WriteLine("cleaning...");
 
             // Clean SS (set fixed angles)
             switch (xgdType)
