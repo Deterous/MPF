@@ -1117,7 +1117,7 @@ namespace MPF.Processors
                 Array.Copy(ss, 32, checkArr, 0, 72);
                 if(Array.Exists(checkArr, x => x != 0))
 #else
-                if(ss.Skip(32).Take(72).Any(x => x != 0))
+                if(!ss.Skip(32).Take(72).Any(x => x != 0))
 #endif
                     return false;
             }
