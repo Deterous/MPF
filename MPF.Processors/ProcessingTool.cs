@@ -1337,6 +1337,7 @@ namespace MPF.Processors
 
             // Rebuild challenge response table
             Dictionary<byte, int> cids = [];
+            Console.WriteLine($"start");
             for (int i = 0; i < dcrt.Length; i+=12)
             {
                 // Validate challenge type 1
