@@ -2,7 +2,7 @@ name: Build and Test
 
 on:
     push:
-        branches: ["master"]
+        branches: ["legacy"]
 
 jobs:
     build:
@@ -30,7 +30,7 @@ jobs:
               run: dotnet test
 
             - name: Run publish script
-              run: ./publish-nix.sh -dp
+              run: ./publish-nix.sh -p
 
             - name: Update rolling tag
               run: |
@@ -45,13 +45,7 @@ jobs:
               with:
                   allowUpdates: True
                   artifacts: "*.nupkg,*.snupkg,*.zip"
-                  body: "Last built commit: ${{ github.sha }}
-
-                      ## UI Builds
-
-                      [Windows x64 UI Release](https://github.com/SabreTools/MPF/releases/download/rolling/MPF.UI_net10.0-windows_win-x64_release.zip)
-
-                      [Windows x64 UI Debug](https://github.com/SabreTools/MPF/releases/download/rolling/MPF.UI_net10.0-windows_win-x64_debug.zip)"
+                  body: "Last built commit: ${{ github.sha }}"
                   name: "Rolling Release"
                   prerelease: True
                   replacesArtifacts: True
