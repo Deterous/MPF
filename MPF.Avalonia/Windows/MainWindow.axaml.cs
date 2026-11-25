@@ -112,6 +112,9 @@ namespace MPF.Avalonia.Windows
             MainViewModel.UpdateVolumeLabelEnabled = false;
             MainViewModel.CopyProtectScanButtonEnabled = false;
 
+            // Set the UI color scheme according to the options
+            ApplyTheme(Resources, MainViewModel.Options);
+
             // Create a tool console window for output
             var toolConsole = new ToolOutputConsole(this);
 
@@ -132,9 +135,6 @@ namespace MPF.Avalonia.Windows
             // Set interface language according to the options
             SetInterfaceLanguage(MainViewModel.Options.GUI.DefaultInterfaceLanguage, rebuildNativeMenus: false);
             ConfigurePlatformMenus();
-
-            // Set the UI color scheme according to the options
-            ApplyTheme(Application.Current!.Resources, MainViewModel.Options);
 
             // Hide or show the media type box based on program
             SetPhysicalMediaTypeVisibility();
@@ -527,13 +527,19 @@ namespace MPF.Avalonia.Windows
 
             Theme theme = darkMode ? new DarkModeTheme() : new LightModeTheme();
             theme.ApplyCustomColors(options.GUI.Theming.CustomBackgroundColor, options.GUI.Theming.CustomTextColor);
-            theme.Apply(resources);
 
             if (Application.Current is Application application)
             {
+                theme.Apply(application.Resources);
+                if (!ReferenceEquals(resources, application.Resources))
+                    theme.Apply(resources);
+
                 application.RequestedThemeVariant = darkMode ? ThemeVariant.Dark : ThemeVariant.Light;
                 Avalonia.Theme.ApplyWindowsTitleBarTheme(darkMode);
+                return;
             }
+
+            theme.Apply(resources);
         }
 
         /// <summary>
